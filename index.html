@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Majay - Catalogue en Ligne</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">🛍️ MAJAY</h1>
+            <p class="tagline">La plateforme tout-en-un pour booster vos ventes sur WhAtsapp et Telegram</p>
+        </div>
+    </header>
+
+    <!-- NAVIGATION CATEGORIES -->
+    <nav class="categories">
+        <button class="category-btn active" data-category="tous">
+            <span class="icon">🌟</span>
+            <span class="text">Tous</span>
+        </button>
+        <button class="category-btn" data-category="montres">
+            <span class="icon">⌚</span>
+            <span class="text">Montres</span>
+        </button>
+        <button class="category-btn" data-category="chaussures">
+            <span class="icon">👟</span>
+            <span class="text">Chaussures</span>
+        </button>
+        <button class="category-btn" data-category="sacs">
+            <span class="icon">👜</span>
+            <span class="text">Sacs</span>
+        </button>
+        <button class="category-btn" data-category="accessoires">
+            <span class="icon">🕶️</span>
+            <span class="text">Accessoires</span>
+        </button>
+        <button class="category-btn" data-category="electronique">
+            <span class="icon">📱</span>
+            <span class="text">Électronique</span>
+        </button>
+    </nav>
+
+    <!-- GRILLE PRODUITS -->
+    <main class="container">
+        <div class="products-grid" id="productsGrid">
+            <!-- Les produits seront chargés ici par JavaScript -->
+        </div>
+    </main>
+
+    <!-- BOUTON PANIER FLOTTANT -->
+    <button class="cart-floating" id="cartBtn">
+        <span class="cart-icon">🛒</span>
+        <span class="cart-text">Panier</span>
+        <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+
+    <!-- MODAL PANIER -->
+    <div class="modal" id="cartModal">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mon Panier</h2>
+                <button class="close-btn" id="closeBtn">&times;</button>
+            </div>
+            
+            <div class="cart-items" id="cartItems">
+                <!-- Items du panier ici -->
+            </div>
+
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span class="total-amount" id="totalAmount">0 CFA</span>
+                </div>
+                <button class="whatsapp-btn" id="whatsappBtn">
+                    <span>📲</span>
+                    <span>Commander sur WhatsApp</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>&copy; 2024 Majay - Tous droits réservés</p>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="app.js"></script>
+</body>
+</html>
