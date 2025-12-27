@@ -1,0 +1,51 @@
+/* BADGES PLANS */
+.badge-free {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.badge-pro {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.badge-entreprise {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+/* BOUTONS */
+.btn-danger {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* SELECT */
+select {
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1em;
+    width: 100%;
+}
+
+select:focus {
+    outline: none;
+    border-color: #667eea;
+}

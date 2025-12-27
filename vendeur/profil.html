@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - MAJAY</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .dashboard-page { background: #f7fafc; }
+        .dashboard-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .dashboard-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-logo { font-size: 1.5em; font-weight: 900; color: #667eea; }
+        .dashboard-nav { display: flex; gap: 20px; }
+        .nav-link {
+            color: #718096;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+        .nav-link.active { background: #edf2f7; color: #667eea; }
+        .dashboard-container { max-width: 800px; margin: 0 auto; padding: 30px 20px; }
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        .profile-header {
+            text-align: center;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        .profile-icon {
+            font-size: 5em;
+            margin-bottom: 15px;
+        }
+        .shop-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .shop-link input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .copy-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div class="dashboard-logo">🛍️ MAJAY</div>
+            <nav class="dashboard-nav">
+                <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+                <a href="produits.html" class="nav-link">📦 Produits</a>
+                <a href="commandes.html" class="nav-link">🛒 Commandes</a>
+                <a href="profil.html" class="nav-link active">⚙️ Profil</a>
+            </nav>
+            <button onclick="window.authMajay.deconnexion()" style="background: none; border: none; cursor: pointer; font-size: 1.2em;">🚪</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-icon">👤</div>
+                <h1 id="vendeurNom">Ma Boutique</h1>
+                <span class="badge" id="vendeurPlan">FREE</span>
+            </div>
+
+            <form id="profilForm" class="auth-form">
+                <div class="form-group">
+                    <label>Nom de la boutique</label>
+                    <input type="text" id="nom" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Téléphone</label>
+                    <input type="tel" id="telephone" disabled style="background: #f7fafc;">
+                    <span class="form-hint">Le téléphone ne peut pas être modifié</span>
+                </div>
+
+                <div class="form-group">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="whatsapp" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Bio / Description</label>
+                    <input type="text" id="bio" placeholder="Décrivez votre boutique">
+                </div>
+
+                <button type="submit" class="btn-primary">💾 Enregistrer les modifications</button>
+            </form>
+
+            <div class="shop-link">
+                <span>🔗</span>
+                <input type="text" id="shopLink" readonly>
+                <button class="copy-btn" onclick="copierLien()">Copier</button>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h2 style="margin-bottom: 20px;">⚠️ Zone dangereuse</h2>
+            <button class="btn-danger" onclick="supprimerCompte()" style="background: #ff4757; color: white; width: 100%;">
+                🗑️ Supprimer mon compte
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from "../js/config.js";
+        import { authMajay } from "../js/auth.js";
+
+        const session = authMajay.getSession();
+        if (!session) window.location.href = 'connexion.html';
+
+        document.getElementById('vendeurNom').textContent = session.nom;
+        document.getElementById('vendeurPlan').textContent = session.plan.toUpperCase();
+        document.getElementById('vendeurPlan').className = `badge badge-${session.plan}`;
+
+        document.getElementById('nom').value = session.nom;
+        document.getElementById('telephone').value = session.telephone;
+        document.getElementById('whatsapp').value = session.whatsapp;
+        document.getElementById('bio').value = session.bio || '';
+        document.getElementById('shopLink').value = window.location.origin + '/?shop=' + session.slug;
+
+        window.copierLien = function() {
+            const input = document.getElementById('shopLink');
+            input.select();
+            document.execCommand('copy');
+            alert('✅ Lien copié !');
+        };
+
+        document.getElementById('profilForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const { error } = await supabase
+                .from('vendeurs')
+                .update({
+                    nom: document.getElementById('nom').value,
+                    whatsapp: document.getElementById('whatsapp').value,
+                    bio: document.getElementById('bio').value
+                })
+                .eq('id', session.id);
+
+            if (error) {
+                alert('❌ ' + error.message);
+            } else {
+                alert('✅ Profil mis à jour !');
+                // Mettre à jour la session
+                session.nom = document.getElementById('nom').value;
+                session.whatsapp = document.getElementById('whatsapp').value;
+                session.bio = document.getElementById('bio').value;
+                authMajay.sauvegarderSession(session);
+            }
+        });
+
+        window.supprimerCompte = async function() {
+            if (!confirm('⚠️ ATTENTION ! Cette action est irréversible. Voulez-vous vraiment supprimer votre compte ?')) return;
+            if (!confirm('Toutes vos données (produits, commandes) seront perdues. Continuer ?')) return;
+
+            const { error } = await supabase
+                .from('vendeurs')
+                .delete()
+                .eq('id', session.id);
+
+            if (error) {
+                alert('❌ ' + error.message);
+            } else {
+                alert('✅ Compte supprimé');
+                authMajay.deconnexion();
+            }
+        };
+    </script>
+</body>
+</html>

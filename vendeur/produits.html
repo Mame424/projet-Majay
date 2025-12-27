@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Produits - MAJAY</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .dashboard-page { background: #f7fafc; }
+        .dashboard-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .dashboard-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dashboard-logo { font-size: 1.5em; font-weight: 900; color: #667eea; }
+        .dashboard-nav { display: flex; gap: 20px; }
+        .nav-link {
+            color: #718096;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+        .nav-link.active { background: #edf2f7; color: #667eea; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-title { font-size: 2em; color: #2d3748; }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #edf2f7;
+        }
+        .product-info { padding: 20px; }
+        .product-name { font-size: 1.2em; font-weight: 700; margin-bottom: 10px; }
+        .product-price { font-size: 1.4em; font-weight: 800; color: #25D366; margin-bottom: 15px; }
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-edit, .btn-delete {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-edit { background: #667eea; color: white; }
+        .btn-delete { background: #ff4757; color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div class="dashboard-logo">🛍️ MAJAY</div>
+            <nav class="dashboard-nav">
+                <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+                <a href="produits.html" class="nav-link active">📦 Produits</a>
+                <a href="commandes.html" class="nav-link">🛒 Commandes</a>
+            </nav>
+            <button onclick="window.authMajay.deconnexion()" style="background: none; border: none; cursor: pointer; font-size: 1.2em;">🚪</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="page-header">
+            <h1 class="page-title">Mes Produits (<span id="productCount">0</span>/<span id="productLimit">10</span>)</h1>
+            <button class="btn-primary" onclick="ouvrirModalAjout()">+ Ajouter un produit</button>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                <div class="loader"></div>
+                <p style="margin-top: 15px; color: #718096;">Chargement...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJOUT/ÉDITION -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Ajouter un produit</h2>
+            <form id="productForm" class="auth-form" style="margin-top: 20px;">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>Nom du produit *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="productDesc">
+                </div>
+                <div class="form-group">
+                    <label>Prix (FCFA) *</label>
+                    <input type="number" id="productPrice" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Catégorie *</label>
+                    <select id="productCategory" required>
+                        <option value="chaussures">👟 Chaussures</option>
+                        <option value="sacs">👜 Sacs</option>
+                        <option value="montres">⌚ Montres</option>
+                        <option value="accessoires">🕶️ Accessoires</option>
+                        <option value="electronique">📱 Électronique</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>URL de l'image</label>
+                    <input type="url" id="productImage" placeholder="https://...">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary" style="flex: 1;">Enregistrer</button>
+                    <button type="button" class="btn-secondary" style="flex: 1;" onclick="fermerModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from "../js/config.js";
+        import { authMajay } from "../js/auth.js";
+
+        const session = authMajay.getSession();
+        if (!session) window.location.href = 'connexion.html';
+
+        let produits = [];
+        const limite = session.plan === 'free' ? 10 : 999999;
+
+        async function chargerProduits() {
+            const { data, error } = await supabase
+                .from('produits')
+                .select('*')
+                .eq('vendeur_id', session.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            produits = data;
+            document.getElementById('productCount').textContent = produits.length;
+            document.getElementById('productLimit').textContent = limite;
+
+            if (produits.length === 0) {
+                document.getElementById('productsGrid').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #718096;">
+                        <div style="font-size: 4em; margin-bottom: 20px;">📦</div>
+                        <h3 style="font-size: 1.5em; margin-bottom: 15px;">Aucun produit</h3>
+                        <p>Ajoutez votre premier produit pour commencer à vendre !</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('productsGrid').innerHTML = produits.map(p => `
+                <div class="product-card">
+                    <img src="${p.image_url || 'https://via.placeholder.com/300'}" class="product-image" alt="${p.nom}">
+                    <div class="product-info">
+                        <div class="product-name">${p.nom}</div>
+                        <div class="product-price">${parseInt(p.prix).toLocaleString()} FCFA</div>
+                        <div class="product-actions">
+                            <button class="btn-edit" onclick="window.editerProduit('${p.id}')">✏️ Modifier</button>
+<button class="btn-delete" onclick="window.supprimerProduit('${p.id}')">🗑️ Supprimer</button>
+</div>
+</div>
+</div>
+`).join('');
+}
+window.ouvrirModalAjout = function() {
+        if (produits.length >= limite) {
+            alert(`❌ Vous avez atteint la limite de ${limite} produits pour le plan ${session.plan.toUpperCase()}`);
+            return;
+        }
+        document.getElementById('modalTitle').textContent = 'Ajouter un produit';
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+        document.getElementById('productModal').classList.add('active');
+    };
+
+    window.editerProduit = function(id) {
+        const produit = produits.find(p => p.id === id);
+        document.getElementById('modalTitle').textContent = 'Modifier le produit';
+        document.getElementById('productId').value = produit.id;
+        document.getElementById('productName').value = produit.nom;
+        document.getElementById('productDesc').value = produit.description || '';
+        document.getElementById('productPrice').value = produit.prix;
+        document.getElementById('productCategory').value = produit.categorie;
+        document.getElementById('productImage').value = produit.image_url || '';
+        document.getElementById('productModal').classList.add('active');
+    };
+
+    window.supprimerProduit = async function(id) {
+        if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
+
+        const { error } = await supabase
+            .from('produits')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert('❌ Erreur : ' + error.message);
+        } else {
+            alert('✅ Produit supprimé !');
+            chargerProduits();
+        }
+    };
+
+    window.fermerModal = function() {
+        document.getElementById('productModal').classList.remove('active');
+    };
+
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('productId').value;
+        const data = {
+            nom: document.getElementById('productName').value,
+            description: document.getElementById('productDesc').value,
+            prix: parseFloat(document.getElementById('productPrice').value),
+            categorie: document.getElementById('productCategory').value,
+            image_url: document.getElementById('productImage').value || null,
+            stock: true
+        };
+
+        if (id) {
+            // Modification
+            const { error } = await supabase
+                .from('produits')
+                .update(data)
+                .eq('id', id);
+
+            if (error) {
+                alert('❌ ' + error.message);
+            } else {
+                alert('✅ Produit modifié !');
+                fermerModal();
+                chargerProduits();
+            }
+        } else {
+            // Ajout
+            const { error } = await supabase
+                .from('produits')
+                .insert({ ...data, vendeur_id: session.id });
+
+            if (error) {
+                alert('❌ ' + error.message);
+            } else {
+                alert('✅ Produit ajouté !');
+                fermerModal();
+                chargerProduits();
+            }
+        }
+    });
+
+    chargerProduits();
+</script>
+</body>
+</html>
+````

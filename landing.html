@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAJAY - Vendez sur WhatsApp et Telegram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="2" fill="white" opacity="0.1"/></svg>');
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-50px, -50px) rotate(360deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+        }
+
+        .hero h1 {
+            font-size: 4em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero p {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 3px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* FEATURES */
+        .features {
+            padding: 100px 20px;
+            background: white;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 60px;
+            color: #2d3748;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 40px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .feature-card p {
+            color: #718096;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        /* PRICING */
+        .pricing {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .pricing h2 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 60px;
+        }
+
+        .pricing-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .pricing-card {
+            background: white;
+            color: #2d3748;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .pricing-card.featured {
+            border: 4px solid #25D366;
+            transform: scale(1.05);
+        }
+
+        .plan-name {
+            font-size: 2em;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .plan-price {
+            font-size: 3em;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .plan-period {
+            color: #718096;
+            margin-bottom: 30px;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .plan-features li::before {
+            content: '✓ ';
+            color: #25D366;
+            font-weight: 900;
+            margin-right: 10px;
+        }
+
+        /* CTA FINAL */
+        .cta-final {
+            padding: 100px 20px;
+            background: #1a1a2e;
+            color: white;
+            text-align: center;
+        }
+
+        .cta-final h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .cta-final p {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5em;
+            }
+
+            .hero p {
+                font-size: 1.2em;
+            }
+
+            .features h2,
+            .pricing h2,
+            .cta-final h2 {
+                font-size: 2em;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>🛍️ MAJAY</h1>
+            <p>La plateforme tout-en-un pour booster vos ventes sur WhatsApp et Telegram</p>
+            <div class="cta-buttons">
+                <a href="vendeur/inscription.html" class="btn btn-primary">🚀 Créer ma boutique gratuitement</a>
+                <a href="index.html?shop=demo-shop" class="btn btn-secondary">👀 Voir une démo</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features">
+        <h2>Pourquoi choisir MAJAY ?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Rapide à créer</h3>
+                <p>Créez votre boutique en ligne en moins de 2 minutes. Aucune compétence technique requise.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>WhatsApp & Telegram</h3>
+                <p>Vos clients commandent directement via WhatsApp ou Telegram. Pas de paiement en ligne compliqué.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3>Lien unique</h3>
+                <p>Partagez un seul lien pour votre catalogue complet. Parfait pour Instagram, Facebook, TikTok.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Statistiques</h3>
+                <p>Suivez vos ventes, vos produits les plus populaires et l'évolution de votre activité.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Sans commission</h3>
+                <p>Gardez 100% de vos ventes. Pas de frais cachés, pas de commission sur les transactions.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3>Multi-plateforme</h3>
+                <p>Fonctionne sur mobile, tablette et ordinateur. Accessible partout, tout le temps.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing">
+        <h2>Choisissez votre plan</h2>
+        <div class="pricing-grid">
+            <!-- FREE -->
+            <div class="pricing-card">
+                <div class="plan-name">🎁 FREE</div>
+                <div class="plan-price">0 FCFA</div>
+                <div class="plan-period">Gratuit pour toujours</div>
+                <ul class="plan-features">
+                    <li>10 produits maximum</li>
+                    <li>Catalogue en ligne</li>
+                    <li>Lien unique</li>
+                    <li>Commandes WhatsApp/Telegram</li>
+                    <li>Support par email</li>
+                </ul>
+                <a href="vendeur/inscription.html" class="btn btn-primary">Commencer gratuitement</a>
+            </div>
+
+            <!-- PRO -->
+            <div class="pricing-card featured">
+                <div class="plan-name">⭐ PRO</div>
+                <div class="plan-price">25 000 FCFA</div>
+                <div class="plan-period">par an</div>
+                <ul class="plan-features">
+                    <li>Produits illimités</li>
+                    <li>Statistiques avancées</li>
+                    <li>Factures personnalisées</li>
+                    <li>Historique des commandes</li>
+                    <li>Top clients</li>
+                    <li>Support prioritaire</li>
+                </ul>
+                <a href="vendeur/inscription.html" class="btn btn-primary">Démarrer avec Pro</a>
+            </div>
+
+            <!-- ENTREPRISE -->
+            <div class="pricing-card">
+                <div class="plan-name">🏢 ENTREPRISE</div>
+                <div class="plan-price">250 000 FCFA</div>
+                <div class="plan-period">par an</div>
+                <ul class="plan-features">
+                    <li>Tout du plan Pro</li>
+                    <li>Multi-boutiques (4)</li>
+                    <li>Statistiques marché</li>
+                    <li>Produits tendances</li>
+                    <li>Publicité ciblée</li>
+                    <li>Support dédié 24/7</li>
+                </ul>
+                <a href="vendeur/inscription.html" class="btn btn-primary">Contacter l'équipe</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section class="cta-final">
+        <h2>Prêt à booster vos ventes ?</h2>
+        <p>Rejoignez des milliers de vendeurs qui utilisent MAJAY</p>
+        <a href="vendeur/inscription.html" class="btn btn-primary" style="font-size: 1.3em; padding: 20px 50px;">🚀 Créer ma boutique maintenant</a>
+    </section>
+</body>
+</html>

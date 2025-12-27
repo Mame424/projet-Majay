@@ -1,3 +1,6 @@
+import { supabase, getVendeurSlug } from "./config.js";
+
+
 // ==================== VARIABLES GLOBALES ====================
 let produits = [];
 let panier = [];
@@ -7,19 +10,39 @@ let vendeurInfo = {};
 // ==================== CHARGEMENT DES DONNÉES ====================
 async function chargerProduits() {
     try {
-        const response = await fetch('data/products.json');
-        const data = await response.json();
-        
-        produits = data.produits;
-        vendeurInfo = data.vendeur;
-        
+        // 1️⃣ Récupérer le vendeur par slug (ex: demo-shop)
+        const { data: vendeur, error: vendeurError } = await supabase
+            .from("vendeurs")
+            .select("id, whatsapp, nom")
+            .eq("slug", getVendeurSlug())
+
+            .single();
+
+        if (vendeurError) throw vendeurError;
+
+        vendeurInfo = vendeur;
+
+        // 2️⃣ Récupérer les produits du vendeur
+        const { data: produitsData, error: produitsError } = await supabase
+            .from("produits")
+            .select("*")
+            .eq("vendeur_id", vendeur.id)
+            .eq("stock", true);
+
+        if (produitsError) throw produitsError;
+
+        produits = produitsData;
+
         afficherProduits(categorieActive);
         initialiserEvenements();
+
     } catch (error) {
-        console.error('Erreur chargement produits:', error);
+        console.error("Erreur chargement Supabase :", error);
         afficherErreur();
     }
 }
+
+
 
 // ==================== AFFICHAGE PRODUITS ====================
 function afficherProduits(categorie) {
@@ -41,7 +64,7 @@ function afficherProduits(categorie) {
 
     grid.innerHTML = produitsFiltres.map(produit => `
         <div class="product-card" data-id="${produit.id}">
-            <img src="${produit.image}" alt="${produit.nom}" class="product-image" loading="lazy">
+            <img src="${produit.image_url}" alt="${produit.nom}" class="product-image" loading="lazy">
             <div class="product-info">
                 <span class="product-category">${produit.categorie}</span>
                 <h3 class="product-name">${produit.nom}</h3>

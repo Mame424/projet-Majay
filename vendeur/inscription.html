@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - MAJAY</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="logo">🛍️ MAJAY</h1>
+            <p class="tagline">Créez votre boutique en ligne</p>
+        </div>
+
+        <div class="auth-card">
+            <h2>Inscription Vendeur</h2>
+            <p class="auth-subtitle">Commencez à vendre en 2 minutes</p>
+
+            <form id="inscriptionForm" class="auth-form">
+                <div class="form-group">
+                    <label>Nom de votre boutique *</label>
+                    <input type="text" id="nom" required placeholder="Ex: Fashion Store">
+                </div>
+
+                <div class="form-group">
+                    <label>Adresse de votre boutique *</label>
+                    <div class="input-with-prefix">
+                        <span class="prefix">majay.com/</span>
+                        <input type="text" id="slug" required placeholder="ma-boutique">
+                    </div>
+                    <span class="form-hint">Lettres minuscules et tirets uniquement</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Numéro de téléphone *</label>
+                    <input type="tel" id="telephone" required placeholder="+237 6XX XXX XXX">
+                </div>
+
+                <div class="form-group">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="whatsapp" placeholder="Même numéro">
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="cgu" required>
+                        <span>J'accepte les conditions</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnSubmit">
+                    <span class="btn-text">Créer ma boutique</span>
+                    <span class="btn-loader" style="display:none">⏳</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Vous avez déjà un compte ? <a href="connexion.html">Se connecter</a></p>
+            </div>
+        </div>
+    </div>
+<script type="module">
+import { authMajay } from "../js/auth.js";
+
+document.getElementById('inscriptionForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loader').style.display = 'inline';
+
+    try {
+        const result = await authMajay.inscrireVendeur({
+            nom: document.getElementById('nom').value.trim(),
+            slug: document.getElementById('slug').value.trim(),
+            telephone: document.getElementById('telephone').value.trim(),
+            whatsapp: document.getElementById('whatsapp').value.trim()
+        });
+
+        if (result.success) {
+            alert('✅ Boutique créée !');
+            window.location.href = '../index.html?shop=' + result.data.slug;
+        } else {
+            throw new Error(result.error);
+        }
+
+    } catch (error) {
+        alert('❌ ' + error.message);
+        btn.disabled = false;
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+    }
+});
+</script>
+
+</body>
+</html>
