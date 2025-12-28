@@ -1,6 +1,5 @@
 import { supabase, getVendeurSlug } from "./config.js";
 
-
 // ==================== VARIABLES GLOBALES ====================
 let produits = [];
 let panier = [];
@@ -10,19 +9,26 @@ let vendeurInfo = {};
 // ==================== CHARGEMENT DES DONNÉES ====================
 async function chargerProduits() {
     try {
-        // 1️⃣ Récupérer le vendeur par slug (ex: demo-shop)
         const { data: vendeur, error: vendeurError } = await supabase
             .from("vendeurs")
-            .select("id, whatsapp, nom")
+            .select("*")
             .eq("slug", getVendeurSlug())
-
             .single();
 
         if (vendeurError) throw vendeurError;
+        if (!vendeur) {
+            afficherErreur("Boutique introuvable");
+            return;
+        }
 
         vendeurInfo = vendeur;
 
-        // 2️⃣ Récupérer les produits du vendeur
+        // Mettre à jour le header
+        document.querySelector('.logo').textContent = `🛍️ ${vendeur.nom}`;
+        if (vendeur.bio) {
+            document.querySelector('.tagline').textContent = vendeur.bio;
+        }
+
         const { data: produitsData, error: produitsError } = await supabase
             .from("produits")
             .select("*")
@@ -31,18 +37,16 @@ async function chargerProduits() {
 
         if (produitsError) throw produitsError;
 
-        produits = produitsData;
+        produits = produitsData || [];
 
         afficherProduits(categorieActive);
         initialiserEvenements();
 
     } catch (error) {
-        console.error("Erreur chargement Supabase :", error);
-        afficherErreur();
+        console.error("Erreur:", error);
+        afficherErreur(error.message);
     }
 }
-
-
 
 // ==================== AFFICHAGE PRODUITS ====================
 function afficherProduits(categorie) {
@@ -56,7 +60,8 @@ function afficherProduits(categorie) {
         grid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: white;">
                 <div style="font-size: 4em; margin-bottom: 20px;">📦</div>
-                <h3 style="font-size: 1.5em;">Aucun produit dans cette catégorie</h3>
+                <h3 style="font-size: 1.5em;">Aucun produit disponible</h3>
+                <p style="margin-top: 10px;">Le vendeur n'a pas encore ajouté de produits</p>
             </div>
         `;
         return;
@@ -64,24 +69,36 @@ function afficherProduits(categorie) {
 
     grid.innerHTML = produitsFiltres.map(produit => `
         <div class="product-card" data-id="${produit.id}">
-            <img src="${produit.image_url}" alt="${produit.nom}" class="product-image" loading="lazy">
+            <img src="${produit.image_url || 'https://via.placeholder.com/300'}" 
+                 alt="${produit.nom}" 
+                 class="product-image" 
+                 loading="lazy"
+                 onerror="this.src='https://via.placeholder.com/300?text=Image'">
             <div class="product-info">
                 <span class="product-category">${produit.categorie}</span>
                 <h3 class="product-name">${produit.nom}</h3>
-                <p class="product-desc">${produit.description}</p>
+                <p class="product-desc">${produit.description || ''}</p>
                 <div class="product-footer">
                     <span class="product-price">${formaterPrix(produit.prix)} CFA</span>
-                    <button class="add-btn" onclick="ajouterAuPanier(${produit.id})">
-                        + Ajouter
+                    <button class="add-btn" data-id="${produit.id}">
+                        <span class="btn-text">+ Ajouter</span>
                     </button>
                 </div>
             </div>
         </div>
     `).join('');
+
+    // Ajouter les événements sur les boutons
+    document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            ajouterAuPanier(id, this);
+        });
+    });
 }
 
 // ==================== GESTION PANIER ====================
-function ajouterAuPanier(idProduit) {
+function ajouterAuPanier(idProduit, bouton) {
     const produit = produits.find(p => p.id === idProduit);
     
     if (!produit) return;
@@ -98,17 +115,25 @@ function ajouterAuPanier(idProduit) {
     }
 
     mettreAJourBadgePanier();
+    animerBoutonAjout(bouton);
     afficherNotification('✅ Produit ajouté au panier');
+}
+
+function animerBoutonAjout(bouton) {
+    const contenuOriginal = bouton.innerHTML;
+    bouton.disabled = true;
+    bouton.innerHTML = '<span class="btn-text">✓ Ajouté !</span>';
+    bouton.classList.add('btn-success');
+    
+    setTimeout(() => {
+        bouton.innerHTML = contenuOriginal;
+        bouton.classList.remove('btn-success');
+        bouton.disabled = false;
+    }, 1500);
 }
 
 function retirerDuPanier(idProduit) {
     panier = panier.filter(item => item.id !== idProduit);
-    mettreAJourBadgePanier();
-    afficherPanier();
-}
-
-function viderPanier() {
-    panier = [];
     mettreAJourBadgePanier();
     afficherPanier();
 }
@@ -139,48 +164,75 @@ function afficherPanier() {
         <div class="cart-item">
             <div class="cart-item-info">
                 <div class="cart-item-name">${item.nom} × ${item.quantite}</div>
-                <div class="cart-item-price">${formaterPrix(item.prix * item.quantite)} CFA</div>
+                <div class="cart-item-price">${formaterPrix(parseFloat(item.prix) * item.quantite)} CFA</div>
             </div>
-            <button class="remove-btn" onclick="retirerDuPanier(${item.id})">✕</button>
+            <button class="remove-btn" data-id="${item.id}">✕</button>
         </div>
     `).join('');
+
+    // Ajouter événements suppression
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            retirerDuPanier(this.dataset.id);
+        });
+    });
 
     const total = calculerTotal();
     totalEl.textContent = `${formaterPrix(total)} CFA`;
 }
 
 function calculerTotal() {
-    return panier.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
+    return panier.reduce((sum, item) => sum + (parseFloat(item.prix) * item.quantite), 0);
 }
 
 // ==================== ENVOI WHATSAPP ====================
-function envoyerVersWhatsApp() {
+async function envoyerVersWhatsApp() {
     if (panier.length === 0) {
         alert('❌ Votre panier est vide !');
         return;
     }
 
-    let message = `🛍️ *NOUVELLE COMMANDE - MAJAY*\n\n`;
+    let message = `🛍️ *NOUVELLE COMMANDE - ${vendeurInfo.nom.toUpperCase()}*\n\n`;
     message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
 
+    const items = [];
+    
     panier.forEach((item, index) => {
         message += `${index + 1}. *${item.nom}*\n`;
         message += `   📦 Quantité: ${item.quantite}\n`;
         message += `   💰 Prix unitaire: ${formaterPrix(item.prix)} CFA\n`;
-        message += `   ✅ Sous-total: ${formaterPrix(item.prix * item.quantite)} CFA\n\n`;
+        message += `   ✅ Sous-total: ${formaterPrix(parseFloat(item.prix) * item.quantite)} CFA\n\n`;
+        
+        items.push({
+            nom: item.nom,
+            prix: parseFloat(item.prix),
+            quantite: item.quantite
+        });
     });
 
+    const total = calculerTotal();
     message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    message += `💵 *TOTAL: ${formaterPrix(calculerTotal())} CFA*\n\n`;
+    message += `💵 *TOTAL: ${formaterPrix(total)} CFA*\n\n`;
     message += `Merci de confirmer ma commande ! 🙏`;
 
-    const numeroWhatsApp = vendeurInfo.whatsapp.replace(/\s/g, '');
+    // Enregistrer la commande
+    try {
+        await supabase.from('commandes').insert({
+            vendeur_id: vendeurInfo.id,
+            items: items,
+            total: total
+        });
+    } catch (error) {
+        console.error('Erreur enregistrement commande:', error);
+    }
+
+    const numeroWhatsApp = vendeurInfo.whatsapp.replace(/\s/g, '').replace(/\+/g, '');
     const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(message)}`;
     
     window.open(url, '_blank');
 }
 
-// ==================== FILTRES CATÉGORIES ====================
+// ==================== FILTRES ====================
 function initialiserFiltres() {
     const boutons = document.querySelectorAll('.category-btn');
     
@@ -195,7 +247,7 @@ function initialiserFiltres() {
     });
 }
 
-// ==================== GESTION MODAL ====================
+// ==================== MODAL ====================
 function ouvrirPanier() {
     afficherPanier();
     document.getElementById('cartModal').classList.add('active');
@@ -209,22 +261,13 @@ function fermerPanier() {
 
 // ==================== ÉVÉNEMENTS ====================
 function initialiserEvenements() {
-    // Bouton panier flottant
     document.getElementById('cartBtn').addEventListener('click', ouvrirPanier);
-    
-    // Bouton fermer modal
     document.getElementById('closeBtn').addEventListener('click', fermerPanier);
-    
-    // Overlay modal
     document.getElementById('modalOverlay').addEventListener('click', fermerPanier);
-    
-    // Bouton WhatsApp
     document.getElementById('whatsappBtn').addEventListener('click', envoyerVersWhatsApp);
     
-    // Filtres catégories
     initialiserFiltres();
     
-    // Fermer modal avec Échap
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             fermerPanier();
@@ -234,11 +277,10 @@ function initialiserEvenements() {
 
 // ==================== UTILITAIRES ====================
 function formaterPrix(prix) {
-    return prix.toLocaleString('fr-FR');
+    return parseFloat(prix).toLocaleString('fr-FR');
 }
 
 function afficherNotification(message) {
-    // Créer notification temporaire
     const notif = document.createElement('div');
     notif.style.cssText = `
         position: fixed;
@@ -263,13 +305,13 @@ function afficherNotification(message) {
     }, 2000);
 }
 
-function afficherErreur() {
+function afficherErreur(msg) {
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: white;">
             <div style="font-size: 4em; margin-bottom: 20px;">⚠️</div>
-            <h3 style="font-size: 1.5em; margin-bottom: 15px;">Erreur de chargement</h3>
-            <p>Impossible de charger les produits. Veuillez vérifier votre connexion.</p>
+            <h3 style="font-size: 1.5em; margin-bottom: 15px;">Erreur</h3>
+            <p>${msg}</p>
             <button onclick="location.reload()" style="
                 margin-top: 20px;
                 padding: 12px 24px;
@@ -288,25 +330,27 @@ function afficherErreur() {
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-    
     @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+    .btn-success {
+        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%) !important;
+    }
+    .cart-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
+    .cart-empty-icon {
+        font-size: 4em;
+        margin-bottom: 15px;
+    }
+    .cart-empty-text {
+        font-size: 1.2em;
     }
 `;
 document.head.appendChild(style);

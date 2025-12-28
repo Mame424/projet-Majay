@@ -1,90 +1,72 @@
-// ==================== AUTHENTIFICATION MAJAY ====================
 import { supabase } from "./config.js";
 
+// ================= INSCRIPTION =================
 async function inscrireVendeur(data) {
-    try {
-        const { nom, slug, telephone, whatsapp } = data;
+  try {
+    const { nom, slug, telephone } = data;
 
-        // Appel RPC inscription
-        const { data: result, error } = await supabase
-            .rpc('inscrire_vendeur', {
-                p_nom: nom,
-                p_slug: slug,
-                p_telephone: telephone
-            });
+    const { data: result, error } = await supabase.rpc(
+      "inscrire_vendeur",
+      {
+        p_nom: nom,
+        p_slug: slug,
+        p_telephone: telephone
+      }
+    );
 
-        if (error) throw error;
+    if (error) throw error;
 
-        // Mettre à jour le WhatsApp si différent
-        if (whatsapp && whatsapp !== telephone) {
-            await supabase
-                .from('vendeurs')
-                .update({ whatsapp })
-                .eq('id', result.id);
-        }
+    sauvegarderSession(result);
+    return { success: true, data: result };
 
-        sauvegarderSession(result);
-        return { success: true, data: result };
-
-    } catch (error) {
-        return { success: false, error: error.message };
-    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
+// ================= CONNEXION =================
 async function connexionVendeur(telephone) {
-    try {
-        const { data: result, error } = await supabase
-            .rpc('connexion_vendeur', {
-                p_telephone: telephone
-            });
+  try {
+    const { data: result, error } = await supabase.rpc(
+      "connexion_vendeur",
+      { p_telephone: telephone }
+    );
 
-        if (error) throw error;
+    if (error) throw error;
 
-        sauvegarderSession(result);
-        return { success: true, data: result };
-
-    } catch (error) {
-        return { success: false, error: error.message };
+    if (!result.actif) {
+      throw new Error("Compte suspendu");
     }
+
+    sauvegarderSession(result);
+    return { success: true, data: result };
+
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
-// ==================== SESSION ====================
+// ================= SESSION =================
 function sauvegarderSession(vendeur) {
-    const session = {
-        ...vendeur,
-        timestamp: Date.now()
-    };
-    localStorage.setItem('majay_vendeur', JSON.stringify(session));
+  localStorage.setItem("majay_vendeur", JSON.stringify({
+    ...vendeur,
+    timestamp: Date.now()
+  }));
 }
 
 function getSession() {
-    const session = localStorage.getItem('majay_vendeur');
-    if (!session) return null;
-
-    try {
-        return JSON.parse(session);
-    } catch {
-        return null;
-    }
+  const s = localStorage.getItem("majay_vendeur");
+  return s ? JSON.parse(s) : null;
 }
 
 function deconnexion() {
-  
-    localStorage.removeItem('majay_vendeur');
-    // Vérifier si on est dans le dossier vendeur
-    if (window.location.pathname.includes('vendeur/')) {
-        window.location.href = 'connexion.html';
-    } else {
-        window.location.href = 'vendeur/connexion.html';
-    }
+  localStorage.removeItem("majay_vendeur");
+  window.location.href = "connexion.html";
 }
 
-
-// ==================== EXPORT ====================
 export const authMajay = {
-    inscrireVendeur,
-    connexionVendeur,
-    sauvegarderSession,
-    getSession,
-    deconnexion
+  inscrireVendeur,
+  connexionVendeur,
+  getSession,
+  deconnexion
 };

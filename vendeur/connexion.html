@@ -38,37 +38,24 @@
     <script type="module">
 import { authMajay } from "../js/auth.js";
 
-document.getElementById('inscriptionForm').addEventListener('submit', async function(e) {
+document
+  .getElementById("connexionForm")
+  .addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true;
-    btn.querySelector('.btn-text').style.display = 'none';
-    btn.querySelector('.btn-loader').style.display = 'inline';
+    const telephone = document.getElementById("telephone").value.trim();
 
-    try {
-        const result = await authMajay.connexionVendeur({
-            nom: document.getElementById('nom').value.trim(),
-            slug: document.getElementById('slug').value.trim(),
-            telephone: document.getElementById('telephone').value.trim(),
-            whatsapp: document.getElementById('whatsapp').value.trim()
-        });
+    const result = await authMajay.connexionVendeur(telephone);
 
-        if (result.success) {
-            alert('✅ Boutique créée !');
-           window.location.href = '../catalogue.html?shop=' + result.data.slug;
-        } else {
-            throw new Error(result.error);
-        }
-
-    } catch (error) {
-        alert('❌ ' + error.message);
-        btn.disabled = false;
-        btn.querySelector('.btn-text').style.display = 'inline';
-        btn.querySelector('.btn-loader').style.display = 'none';
+    if (!result.success) {
+      alert("❌ " + result.error);
+      return;
     }
-});
+
+    window.location.href = "dashboard.html";
+  });
 </script>
+
 
 </body>
 </html>

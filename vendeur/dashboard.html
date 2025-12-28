@@ -146,6 +146,9 @@
                 <div style="text-align: center; padding: 40px; color: #718096;">
                     Chargement...
                 </div>
+                <button onclick="upgradePlan('pro')">🚀 Passer Pro</button>
+                <button onclick="upgradePlan('premium')">💎 Passer Premium</button>
+
             </div>
         </div>
     </div>
@@ -156,6 +159,22 @@
 
         const session = authMajay.getSession();
         if (!session) window.location.href = 'connexion.html';
+        window.upgradePlan = function(plan) {
+  const msg = `
+Bonjour,
+Je souhaite passer au plan ${plan.toUpperCase()}.
+
+Boutique : ${session.nom}
+Téléphone : ${session.telephone}
+Slug : ${session.slug}
+`;
+  window.open(
+    "https://wa.me/221XXXXXXXX?text=" + encodeURIComponent(msg),
+    "_blank"
+  );
+};
+
+        
 
         document.getElementById('userName').textContent = session.nom;
         document.getElementById('userPlan').textContent = session.plan.toUpperCase();

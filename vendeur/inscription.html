@@ -80,8 +80,9 @@ document.getElementById('inscriptionForm').addEventListener('submit', async func
         });
 
         if (result.success) {
-            alert('✅ Boutique créée !');
-            window.location.href = '../catalogue.html?shop=' + result.data.slug;
+          
+          alert('✅ Boutique créée avec succès ! Ajoutez vos premiers produits.');
+            window.location.href = 'dashboard.html';
         } else {
             throw new Error(result.error);
         }
