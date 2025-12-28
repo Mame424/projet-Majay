@@ -69,9 +69,16 @@ function getSession() {
 }
 
 function deconnexion() {
+  
     localStorage.removeItem('majay_vendeur');
-    window.location.href = 'connexion.html';
+    // Vérifier si on est dans le dossier vendeur
+    if (window.location.pathname.includes('vendeur/')) {
+        window.location.href = 'connexion.html';
+    } else {
+        window.location.href = 'vendeur/connexion.html';
+    }
 }
+
 
 // ==================== EXPORT ====================
 export const authMajay = {

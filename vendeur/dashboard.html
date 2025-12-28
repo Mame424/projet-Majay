@@ -253,11 +253,11 @@
         }
 
         window.copierLien = function() {
-            const lien = window.location.origin + '/?shop=' + session.slug;
-            navigator.clipboard.writeText(lien).then(() => {
-                alert('✅ Lien copié ! Partagez-le avec vos clients');
-            });
-        };
+    const lien = window.location.origin + '/catalogue.html?shop=' + session.slug;
+    navigator.clipboard.writeText(lien).then(() => {
+        alert('✅ Lien copié ! Partagez-le avec vos clients');
+    });
+};
 
         chargerStats();
         chargerCommandes();

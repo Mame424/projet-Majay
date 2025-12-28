@@ -150,7 +150,7 @@
         document.getElementById('telephone').value = session.telephone;
         document.getElementById('whatsapp').value = session.whatsapp;
         document.getElementById('bio').value = session.bio || '';
-        document.getElementById('shopLink').value = window.location.origin + '/?shop=' + session.slug;
+        document.getElementById('shopLink').value = window.location.origin + '/catalogue.html?shop=' + session.slug;
 
         window.copierLien = function() {
             const input = document.getElementById('shopLink');
