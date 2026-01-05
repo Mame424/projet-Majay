@@ -1,4 +1,0 @@
-SupabaseHabibsembène8602 : mot de passe supabase
-https://hhyxccvwtqgzxsxcqecw.supabase.co : url supabase
-sb_publishable_AYXbgGCl7k2JUO_5yyYGFA_8a7kTBSP :SUPABASE_Public API KEY
-						

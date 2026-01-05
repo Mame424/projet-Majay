@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - MAJAY</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+        }
+        .admin-nav a {
+            color: white;
+        }
+        .admin-nav a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .loader {
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <header class="dashboard-header admin-header">
+        <div class="dashboard-header-content">
+            <div class="dashboard-logo">🛡️ ADMIN MAJAY</div>
+            <nav class="dashboard-nav admin-nav">
+                <a href="dashboard.html" class="nav-link active">📊 Dashboard</a>
+                <a href="vendeurs.html" class="nav-link">👥 Vendeurs</a>
+            </nav>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="adminName" style="color: white;"></span>
+                <button onclick="deconnexionAdmin()" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: white;">🚪</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <h1 style="font-size: 2em; margin-bottom: 30px;">Tableau de bord SuperAdmin</h1>
+
+        <div class="stats-grid" id="statsGrid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                <div class="loader"></div>
+                <p style="margin-top: 15px; color: #718096;">Chargement des statistiques...</p>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">📋 Comptes en attente d'approbation</h2>
+            <div id="demandesListe">Chargement...</div>
+        </div>
+
+        <div style="background: white; border-radius: 16px; padding: 30px; margin-top: 30px;">
+            <h2 style="margin-bottom: 20px;">📈 Dernières commandes</h2>
+            <div id="commandesRecentes">Chargement...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from "../js/config.js";
+        import { adminAuth } from "../js/admin-auth.js";
+
+        const admin = adminAuth.verifierAuthAdmin();
+        if (!admin) {
+            window.location.href = 'connexion.html';
+        }
+
+        document.getElementById('adminName').textContent = admin.nom;
+
+        window.deconnexionAdmin = () => adminAuth.deconnexionAdmin();
+
+        async function chargerStats() {
+            try {
+                const stats = await adminAuth.getStatsAdmin();
+
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-label">Total Vendeurs</div>
+                        <div class="stat-value">${stats.total_vendeurs}</div>
+                        <p style="font-size: 0.9em; color: #718096; margin-top: 10px;">
+                            Actifs: ${stats.vendeurs_actifs} | Inactifs: ${stats.vendeurs_inactifs}
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-label">Produits</div>
+                        <div class="stat-value">${stats.total_produits}</div>
+                        <p style="font-size: 0.9em; color: #718096; margin-top: 10px;">
+                            Free: ${stats.vendeurs_free} | Pro: ${stats.vendeurs_pro} | Ent: ${stats.vendeurs_entreprise}
+                        </p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-label">Commandes</div>
+                        <div class="stat-value">${stats.total_commandes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Volume Total</div>
+                        <div class="stat-value">${parseFloat(stats.volume_ventes_total).toLocaleString()} FCFA</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('statsGrid').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #718096;">
+                        ❌ Erreur lors du chargement des statistiques
+                    </div>
+                `;
+            }
+        }
+
+        async function chargerDemandes() {
+            try {
+                const { data, error } = await supabase
+                    .from('vendeurs')
+                    .select('*')
+                    .eq('actif', false)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    document.getElementById('demandesListe').innerHTML = `
+                        <p style="text-align: center; color: #718096; padding: 40px;">
+                            ✅ Aucune demande en attente
+                        </p>
+                    `;
+                    return;
+                }
+
+                document.getElementById('demandesListe').innerHTML = data.map(v => `
+                    <div style="padding: 20px; border: 2px solid #ffa502; border-radius: 12px; margin-bottom: 15px; background: #fffbf5;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h3 style="margin-bottom: 5px; color: #1a1a2e;">${v.nom}</h3>
+                                <p style="color: #718096; margin-bottom: 5px;">📞 ${v.telephone}</p>
+                                <p style="color: #718096; margin-bottom: 5px;">🔗 majay.com/${v.slug}</p>
+                                <p style="color: #718096; font-size: 0.9em;">
+                                    Inscrit le ${new Date(v.created_at).toLocaleDateString('fr-FR')}
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button onclick="approuverVendeur('${v.id}')" class="btn-primary" style="padding: 12px 24px;">
+                                    ✅ Approuver
+                                </button>
+                                <button onclick="rejeterVendeur('${v.id}')" class="btn-danger" style="padding: 12px 24px; background: #ff4757; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    ❌ Rejeter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        window.approuverVendeur = async function(id) {
+            if (!confirm('Approuver ce vendeur ?')) return;
+
+            try {
+                await adminAuth.toggleVendeur(id, true);
+                alert('✅ Vendeur approuvé !');
+                chargerDemandes();
+                chargerStats();
+            } catch (error) {
+                alert('❌ ' + error.message);
+            }
+        };
+
+        window.rejeterVendeur = async function(id) {
+            if (!confirm('Rejeter ce vendeur ? Le compte sera supprimé.')) return;
+
+            try {
+                await adminAuth.supprimerVendeur(id);
+                alert('✅ Vendeur rejeté');
+                chargerDemandes();
+                chargerStats();
+            } catch (error) {
+                alert('❌ ' + error.message);
+            }
+        };
+
+        async function chargerCommandesRecentes() {
+            try {
+                const { data, error } = await supabase
+                    .from('commandes')
+                    .select(`
+                        *,
+                        vendeurs(nom, slug)
+                    `)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    document.getElementById('commandesRecentes').innerHTML = `
+                        <p style="text-align: center; color: #718096; padding: 40px;">
+                            Aucune commande récente
+                        </p>
+                    `;
+                    return;
+                }
+
+                document.getElementById('commandesRecentes').innerHTML = `
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr style="background: #f7fafc;">
+                                <th style="padding: 15px; text-align: left;">Date</th>
+                                <th style="padding: 15px; text-align: left;">Vendeur</th>
+                                <th style="padding: 15px; text-align: left;">Articles</th>
+                                <th style="padding: 15px; text-align: left;">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(c => `
+                                <tr style="border-top: 1px solid #e2e8f0;">
+                                    <td style="padding: 15px;">${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
+                                    <td style="padding: 15px;">${c.vendeurs?.nom || 'N/A'}</td>
+                                    <td style="padding: 15px;">${c.items?.length || 0} article(s)</td>
+                                    <td style="padding: 15px; font-weight: 700; color: #25D366;">${parseInt(c.total).toLocaleString()} FCFA</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        chargerStats();
+        chargerDemandes();
+        chargerCommandesRecentes();
+    </script>
+</body>
+</html>

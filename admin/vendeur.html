@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Vendeurs - MAJAY Admin</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        body {
+            background: #f7fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .admin-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .dashboard-logo {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .admin-nav {
+            display: flex;
+            gap: 15px;
+        }
+        .admin-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .admin-nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .admin-nav a.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .badge-free {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .badge-pro {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #ee5a6f;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #2ed573;
+            color: white;
+        }
+        .btn-success:hover:not(:disabled) {
+            background: #26de81;
+            transform: translateY(-1px);
+        }
+        .btn-logout {
+            background: none;
+            border: 2px solid white;
+            color: white;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        select:hover {
+            border-color: #cbd5e0;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        tr:hover {
+            background: #f7fafc;
+        }
+        th {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .search-box {
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            width: 300px;
+            max-width: 100%;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            flex: 1;
+            min-width: 200px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+        .stat-label {
+            color: #718096;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="dashboard-logo">🛡️ ADMIN MAJAY</div>
+            <nav class="admin-nav">
+                <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+                <a href="vendeurs.html" class="nav-link active">👥 Vendeurs</a>
+            </nav>
+            <button onclick="deconnexionAdmin()" class="btn-logout">🚪 Déconnexion</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Statistiques rapides -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-number" id="totalVendeurs">-</div>
+                <div class="stat-label">Total Vendeurs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="vendeursActifs">-</div>
+                <div class="stat-label">Actifs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="vendeursPro">-</div>
+                <div class="stat-label">Plan Pro</div>
+            </div>
+        </div>
+
+        <!-- Barre de recherche -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="font-size: 2em; margin: 0;">Gestion des Vendeurs</h1>
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Rechercher par nom, slug ou téléphone...">
+        </div>
+
+        <!-- Tableau des vendeurs -->
+        <div style="background: white; border-radius: 16px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <table style="width: 100%; min-width: 900px;">
+                <thead>
+                    <tr style="background: #f7fafc;">
+                        <th style="padding: 15px; text-align: left;">Vendeur</th>
+                        <th style="padding: 15px; text-align: left;">Contact</th>
+                        <th style="padding: 15px; text-align: left;">Plan</th>
+                        <th style="padding: 15px; text-align: center;">Produits</th>
+                        <th style="padding: 15px; text-align: center;">Statut</th>
+                        <th style="padding: 15px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="vendeursTable">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: #718096;">
+                            <div style="font-size: 3em;">⏳</div>
+                            <div style="margin-top: 10px;">Chargement des données...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { adminAuth } from "../js/admin-auth.js";
+
+        // Vérifier l'authentification
+        const admin = adminAuth.verifierAuthAdmin();
+        if (!admin) {
+            window.location.href = 'connexion.html';
+        }
+
+        // Fonction de déconnexion globale
+        window.deconnexionAdmin = () => {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                adminAuth.deconnexionAdmin();
+            }
+        };
+
+        let vendeurs = [];
+        let stats = { total: 0, actifs: 0, pro: 0 };
+
+        // Charger les vendeurs
+        async function chargerVendeurs() {
+            try {
+                vendeurs = await adminAuth.getTousVendeurs();
+                calculerStats();
+                afficherVendeurs(vendeurs);
+            } catch (error) {
+                console.error('Erreur chargement:', error);
+                document.getElementById('vendeursTable').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px;">
+                            <div style="color: #ff4757; font-size: 3em;">❌</div>
+                            <div style="color: #ff4757; margin-top: 10px; font-weight: 600;">Erreur lors du chargement</div>
+                            <div style="color: #718096; margin-top: 5px;">${error.message}</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Calculer les statistiques
+        function calculerStats() {
+            stats.total = vendeurs.length;
+            stats.actifs = vendeurs.filter(v => v.actif).length;
+            stats.pro = vendeurs.filter(v => v.plan === 'pro').length;
+            
+            document.getElementById('totalVendeurs').textContent = stats.total;
+            document.getElementById('vendeursActifs').textContent = stats.actifs;
+            document.getElementById('vendeursPro').textContent = stats.pro;
+        }
+
+        // Afficher les vendeurs dans le tableau
+        function afficherVendeurs(liste) {
+            if (liste.length === 0) {
+                document.getElementById('vendeursTable').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 60px; color: #718096;">
+                            <div style="font-size: 3em;">🔍</div>
+                            <div style="margin-top: 10px;">Aucun vendeur trouvé</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            document.getElementById('vendeursTable').innerHTML = liste.map(v => `
+                <tr style="border-top: 1px solid #e2e8f0;">
+                    <td style="padding: 15px;">
+                        <div style="font-weight: 600; color: #2d3748;">${v.nom}</div>
+                        <div style="color: #718096; font-size: 0.9em; margin-top: 3px;">@${v.slug}</div>
+                    </td>
+                    <td style="padding: 15px;">
+                        <div style="color: #2d3748;">${v.telephone}</div>
+                        ${v.email ? `<div style="color: #718096; font-size: 0.9em; margin-top: 3px;">${v.email}</div>` : ''}
+                    </td>
+                    <td style="padding: 15px;">
+                        <select onchange="changerPlan('${v.id}', this.value, this)" 
+                                style="padding: 8px 12px; border-radius: 8px; border: 2px solid #e2e8f0; background: white;">
+                            <option value="free" ${v.plan === 'free' ? 'selected' : ''}>🎁 Free</option>
+                            <option value="pro" ${v.plan === 'pro' ? 'selected' : ''}>⭐ Pro</option>
+                        </select>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <span style="font-weight: 600; color: #667eea;">${v.nombreProduits || 0}</span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <span class="badge ${v.actif ? 'badge-active' : 'badge-inactive'}">
+                            ${v.actif ? '✓ Actif' : '✗ Inactif'}
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <button class="btn ${v.actif ? 'btn-danger' : 'btn-success'}" 
+                                onclick="${v.actif ? 'desactiverVendeur' : 'activerVendeur'}('${v.id}', this)">
+                            ${v.actif ? '🚫 Désactiver' : '✓ Activer'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Changer le plan d'un vendeur
+        window.changerPlan = async (vendeurId, nouveauPlan, selectElement) => {
+            const ancienPlan = selectElement.value === 'pro' ? 'free' : 'pro';
+            selectElement.disabled = true;
+            
+            try {
+                await adminAuth.modifierPlanVendeur(vendeurId, nouveauPlan);
+                alert(`✅ Plan modifié avec succès vers ${nouveauPlan === 'pro' ? 'Pro ⭐' : 'Free 🎁'} !`);
+                await chargerVendeurs();
+            } catch (error) {
+                alert('❌ Erreur lors de la modification du plan');
+                console.error(error);
+                selectElement.value = ancienPlan;
+                selectElement.disabled = false;
+            }
+        };
+
+        // Désactiver un vendeur
+        window.desactiverVendeur = async (vendeurId, btnElement) => {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir désactiver ce vendeur ?\n\nSon catalogue ne sera plus accessible publiquement.')) {
+                return;
+            }
+            
+            btnElement.disabled = true;
+            btnElement.textContent = '⏳ Désactivation...';
+            
+            try {
+                await adminAuth.modifierStatutVendeur(vendeurId, false);
+                alert('✅ Vendeur désactivé avec succès !');
+                await chargerVendeurs();
+            } catch (error) {
+                alert('❌ Erreur lors de la désactivation');
+                console.error(error);
+                btnElement.disabled = false;
+                btnElement.textContent = '🚫 Désactiver';
+            }
+        };
+
+        // Activer un vendeur
+        window.activerVendeur = async (vendeurId, btnElement) => {
+            btnElement.disabled = true;
+            btnElement.textContent = '⏳ Activation...';
+            
+            try {
+                await adminAuth.modifierStatutVendeur(vendeurId, true);
+                alert('✅ Vendeur activé avec succès !');
+                await chargerVendeurs();
+            } catch (error) {
+                alert('❌ Erreur lors de l\'activation');
+                console.error(error);
+                btnElement.disabled = false;
+                btnElement.textContent = '✓ Activer';
+            }
+        };
+
+        // Fonction de recherche
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const terme = e.target.value.toLowerCase().trim();
+            
+            if (!terme) {
+                afficherVendeurs(vendeurs);
+                return;
+            }
+            
+            const filtres = vendeurs.filter(v => 
+                v.nom.toLowerCase().includes(terme) || 
+                v.slug.toLowerCase().includes(terme) ||
+                v.telephone.includes(terme) ||
+                (v.email && v.email.toLowerCase().includes(terme))
+            );
+            
+            afficherVendeurs(filtres);
+        });
+
+        // Charger les vendeurs au démarrage
+        chargerVendeurs();
+    </script>
+</body>
+</html>
