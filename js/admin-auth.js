@@ -1,127 +1,96 @@
 import { supabase } from "./config.js";
 
-// ================= CONNEXION ADMIN =================
-async function connexionAdmin(telephone) {
-  try {
-    const { data: result, error } = await supabase.rpc(
-      "connexion_admin",
-      { p_telephone: telephone }
-    );
+/* =========================
+   DEMANDE OTP EMAIL
+========================= */
+async function demanderOTP(email) {
+  // ✅ Vérifier d'abord si l'admin existe
+  const { data: adminData } = await supabase
+    .from('admins')
+    .select('email, actif')
+    .eq('email', email)
+    .eq('actif', true)
+    .single();
 
-    if (error) throw error;
+  if (!adminData) {
+    return { 
+      success: false, 
+      error: "Cet email n'est pas autorisé comme admin" 
+    };
+  }
 
-    sauvegarderSessionAdmin(result);
-    return { success: true, data: result };
+  // ✅ Envoyer l'OTP
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,  // ⬅️ CHANGÉ : doit être true
+      emailRedirectTo: "https://projet-majay.vercel.app/admin/dashboard.html"
+    }
+  });
 
-  } catch (error) {
+  if (error) {
     return { success: false, error: error.message };
   }
+
+  return { success: true };
 }
 
-// ================= SESSION ADMIN =================
-function sauvegarderSessionAdmin(admin) {
+/* =========================
+   VERIFICATION ADMIN
+========================= */
+async function verifierAdmin() {
+  const { data: sessionData } = await supabase.auth.getSession();
+
+  if (!sessionData.session) return null;
+
+  const email = sessionData.session.user.email;
+
+  const { data, error } = await supabase.rpc("admin_is_allowed", {
+    p_email: email
+  });
+
+  if (error) {
+    await supabase.auth.signOut();
+    return null;
+  }
+
   localStorage.setItem("majay_admin", JSON.stringify({
-    ...admin,
+    ...data,
+    email,
     timestamp: Date.now()
   }));
+
+  return data;
 }
 
+/* =========================
+   SESSION
+========================= */
 function getSessionAdmin() {
   const s = localStorage.getItem("majay_admin");
   if (!s) return null;
-  
-  try {
-    const data = JSON.parse(s);
-    // Vérifier expiration (7 jours)
-    const age = Date.now() - data.timestamp;
-    if (age > 7 * 24 * 60 * 60 * 1000) {
-      deconnexionAdmin();
-      return null;
-    }
-    return data;
-  } catch {
+
+  const data = JSON.parse(s);
+  const age = Date.now() - data.timestamp;
+
+  // Session valide 24h
+  if (age > 24 * 60 * 60 * 1000) {
+    deconnexionAdmin();
     return null;
   }
+
+  return data;
 }
 
-function deconnexionAdmin() {
+async function deconnexionAdmin() {
+  await supabase.auth.signOut();
   localStorage.removeItem("majay_admin");
   window.location.href = "connexion.html";
 }
 
-// ================= VÉRIFICATION AUTH =================
-function verifierAuthAdmin() {
-  const session = getSessionAdmin();
-  
-  const pagesProtegees = [
-    'dashboard.html',
-    'vendeurs.html',
-    'stats.html'
-  ];
-  
-  const currentPage = window.location.pathname.split('/').pop();
-  
-  if (pagesProtegees.includes(currentPage) && !session) {
-    window.location.href = 'connexion.html';
-    return false;
-  }
-  
-  if (currentPage === 'connexion.html' && session) {
-    window.location.href = 'dashboard.html';
-    return false;
-  }
-  
-  return session;
-}
-
-// ================= ACTIONS ADMIN =================
-async function toggleVendeur(vendeurId, actif) {
-  const { data, error } = await supabase.rpc('admin_toggle_vendeur', {
-    p_vendeur_id: vendeurId,
-    p_actif: actif
-  });
-  
-  if (error) throw error;
-  return data;
-}
-
-async function changerPlan(vendeurId, plan) {
-  const { data, error } = await supabase.rpc('admin_set_plan', {
-    p_vendeur_id: vendeurId,
-    p_plan: plan
-  });
-  
-  if (error) throw error;
-  return data;
-}
-
-async function supprimerVendeur(vendeurId) {
-  const { data, error } = await supabase.rpc('admin_delete_vendeur', {
-    p_vendeur_id: vendeurId
-  });
-  
-  if (error) throw error;
-  return data;
-}
-
-async function getStatsAdmin() {
-  const { data, error } = await supabase
-    .from('vue_stats_admin')
-    .select('*')
-    .single();
-  
-  if (error) throw error;
-  return data;
-}
-
-// ================= EXPORT =================
 export const adminAuth = {
-  connexionAdmin,
+  demanderOTP,
+  verifierAdmin,
   getSessionAdmin,
-  deconnexionAdmin,
-  verifierAuthAdmin,
-  toggleVendeur,
-  changerPlan,
-  supprimerVendeur,
-  getStatsAdmin
+  deconnexionAdmin
 };

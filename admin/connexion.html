@@ -1,71 +1,47 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion SuperAdmin - MAJAY</title>
-    <link rel="stylesheet" href="../css/dashboard.css">
+  <meta charset="UTF-8">
+  <title>Connexion Admin - MAJAY</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
 </head>
-<body class="auth-page" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);">
-    <div class="auth-container">
-        <div class="auth-header">
-            <h1 class="logo" style="color: white;">🛡️ MAJAY</h1>
-            <p class="tagline" style="color: rgba(255,255,255,0.9);">Espace SuperAdmin</p>
-        </div>
+<body class="auth-page">
 
-        <div class="auth-card">
-            <h2>Connexion SuperAdmin</h2>
-            <p class="auth-subtitle">Accès réservé aux administrateurs</p>
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Connexion SuperAdmin</h2>
+    <p>Un code vous sera envoyé par email</p>
 
-            <form id="adminForm" class="auth-form">
-                <div class="form-group">
-                    <label>Numéro de téléphone SuperAdmin</label>
-                    <input type="tel" id="telephone" required placeholder="+221 XX XXX XX XX" autofocus>
-                    <span class="form-hint">Utilisez le numéro enregistré</span>
-                </div>
+    <form id="adminForm">
+      <input
+        type="email"
+        id="email"
+        placeholder="email admin"
+        required
+      />
 
-                <button type="submit" class="btn-primary">
-                    <span class="btn-text">🔐 Connexion Sécurisée</span>
-                    <span class="btn-loader" style="display:none">⏳</span>
-                </button>
-            </form>
+      <button type="submit">Recevoir le code</button>
+    </form>
+  </div>
+</div>
 
-            <div class="auth-footer">
-                <a href="../index.html" style="color: #667eea;">← Retour à l'accueil</a>
-            </div>
-        </div>
-    </div>
+<script type="module">
+  import { adminAuth } from "../js/admin-auth.js";
 
-    <script type="module">
-        import { adminAuth } from "../js/admin-auth.js";
+  document.getElementById("adminForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
 
-        document.getElementById('adminForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const btn = e.target.querySelector('button[type="submit"]');
-            const btnText = btn.querySelector('.btn-text');
-            const btnLoader = btn.querySelector('.btn-loader');
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            btnLoader.style.display = 'inline';
-            
-            try {
-                const tel = document.getElementById('telephone').value.trim();
-                const result = await adminAuth.connexionAdmin(tel);
-                
-                if (result.success) {
-                    window.location.href = 'dashboard.html';
-                } else {
-                    throw new Error(result.error);
-                }
-            } catch (error) {
-                alert('❌ ' + error.message);
-                btn.disabled = false;
-                btnText.style.display = 'inline';
-                btnLoader.style.display = 'none';
-            }
-        });
-    </script>
+    const res = await adminAuth.demanderOTP(email);
+
+    if (!res.success) {
+      alert("❌ " + res.error);
+      return;
+    }
+
+    alert("📩 Code envoyé par email. Vérifie ta boîte.");
+  });
+</script>
+
 </body>
 </html>
