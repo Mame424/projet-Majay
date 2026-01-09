@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Vendeurs - MAJAY Admin</title>
-    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/whatsapp-dashboard.css">
     <style>
         body {
             background: #f7fafc;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         .admin-header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);
             color: white;
             padding: 20px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -97,11 +96,11 @@
             transform: translateY(-1px);
         }
         .btn-success {
-            background: #2ed573;
+            background: #25D366;
             color: white;
         }
         .btn-success:hover:not(:disabled) {
-            background: #26de81;
+            background: #128C7E;
             transform: translateY(-1px);
         }
         .btn-logout {
@@ -111,7 +110,6 @@
             cursor: pointer;
             padding: 8px 16px;
             border-radius: 8px;
-            font-size: 1em;
             transition: all 0.3s;
         }
         .btn-logout:hover {
@@ -130,7 +128,7 @@
         }
         select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #25D366;
         }
         table {
             border-collapse: separate;
@@ -154,8 +152,8 @@
         }
         .search-box:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #25D366;
+            box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
         }
         .stats-row {
             display: flex;
@@ -174,11 +172,29 @@
         .stat-number {
             font-size: 2em;
             font-weight: bold;
-            color: #1a1a2e;
+            color: #075E54;
         }
         .stat-label {
             color: #718096;
             margin-top: 5px;
+        }
+        .loader {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+        .loader-spin {
+            border: 4px solid rgba(37, 211, 102, 0.2);
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -187,8 +203,8 @@
         <div class="admin-header-content">
             <div class="dashboard-logo">🛡️ ADMIN MAJAY</div>
             <nav class="admin-nav">
-                <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
-                <a href="vendeurs.html" class="nav-link active">👥 Vendeurs</a>
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="vendeurs.html" class="active">👥 Vendeurs</a>
             </nav>
             <button onclick="deconnexionAdmin()" class="btn-logout">🚪 Déconnexion</button>
         </div>
@@ -232,9 +248,9 @@
                 </thead>
                 <tbody id="vendeursTable">
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 60px; color: #718096;">
-                            <div style="font-size: 3em;">⏳</div>
-                            <div style="margin-top: 10px;">Chargement des données...</div>
+                        <td colspan="6" class="loader">
+                            <div class="loader-spin"></div>
+                            <div>Chargement des données...</div>
                         </td>
                     </tr>
                 </tbody>
@@ -243,12 +259,14 @@
     </div>
 
     <script type="module">
+        import { supabase } from "../js/config.js";
         import { adminAuth } from "../js/admin-auth.js";
 
         // Vérifier l'authentification
-        const admin = adminAuth.verifierAuthAdmin();
+        const admin = await adminAuth.verifierAdmin();
         if (!admin) {
             window.location.href = 'connexion.html';
+            throw new Error('Non authentifié');
         }
 
         // Fonction de déconnexion globale
@@ -264,7 +282,22 @@
         // Charger les vendeurs
         async function chargerVendeurs() {
             try {
-                vendeurs = await adminAuth.getTousVendeurs();
+                const { data, error } = await supabase
+                    .from('vendeurs')
+                    .select(`
+                        *,
+                        produits(count)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Formater les données
+                vendeurs = data.map(v => ({
+                    ...v,
+                    nombreProduits: v.produits?.[0]?.count || 0
+                }));
+
                 calculerStats();
                 afficherVendeurs(vendeurs);
             } catch (error) {
@@ -321,10 +354,11 @@
                                 style="padding: 8px 12px; border-radius: 8px; border: 2px solid #e2e8f0; background: white;">
                             <option value="free" ${v.plan === 'free' ? 'selected' : ''}>🎁 Free</option>
                             <option value="pro" ${v.plan === 'pro' ? 'selected' : ''}>⭐ Pro</option>
+                            <option value="entreprise" ${v.plan === 'entreprise' ? 'selected' : ''}>🏢 Entreprise</option>
                         </select>
                     </td>
                     <td style="padding: 15px; text-align: center;">
-                        <span style="font-weight: 600; color: #667eea;">${v.nombreProduits || 0}</span>
+                        <span style="font-weight: 600; color: #25D366;">${v.nombreProduits}</span>
                     </td>
                     <td style="padding: 15px; text-align: center;">
                         <span class="badge ${v.actif ? 'badge-active' : 'badge-inactive'}">
@@ -343,15 +377,22 @@
 
         // Changer le plan d'un vendeur
         window.changerPlan = async (vendeurId, nouveauPlan, selectElement) => {
-            const ancienPlan = selectElement.value === 'pro' ? 'free' : 'pro';
+            const ancienPlan = selectElement.dataset.oldValue || selectElement.value;
+            selectElement.dataset.oldValue = selectElement.value;
             selectElement.disabled = true;
             
             try {
-                await adminAuth.modifierPlanVendeur(vendeurId, nouveauPlan);
-                alert(`✅ Plan modifié avec succès vers ${nouveauPlan === 'pro' ? 'Pro ⭐' : 'Free 🎁'} !`);
+                const { error } = await supabase.rpc('admin_changer_plan', {
+                    p_vendeur_id: vendeurId,
+                    p_nouveau_plan: nouveauPlan
+                });
+
+                if (error) throw error;
+
+                alert(`✅ Plan modifié avec succès vers ${nouveauPlan.toUpperCase()} !`);
                 await chargerVendeurs();
             } catch (error) {
-                alert('❌ Erreur lors de la modification du plan');
+                alert('❌ Erreur : ' + error.message);
                 console.error(error);
                 selectElement.value = ancienPlan;
                 selectElement.disabled = false;
@@ -368,11 +409,17 @@
             btnElement.textContent = '⏳ Désactivation...';
             
             try {
-                await adminAuth.modifierStatutVendeur(vendeurId, false);
+                const { error } = await supabase.rpc('admin_toggle_vendeur', {
+                    p_vendeur_id: vendeurId,
+                    p_actif: false
+                });
+
+                if (error) throw error;
+
                 alert('✅ Vendeur désactivé avec succès !');
                 await chargerVendeurs();
             } catch (error) {
-                alert('❌ Erreur lors de la désactivation');
+                alert('❌ Erreur : ' + error.message);
                 console.error(error);
                 btnElement.disabled = false;
                 btnElement.textContent = '🚫 Désactiver';
@@ -385,11 +432,17 @@
             btnElement.textContent = '⏳ Activation...';
             
             try {
-                await adminAuth.modifierStatutVendeur(vendeurId, true);
+                const { error } = await supabase.rpc('admin_toggle_vendeur', {
+                    p_vendeur_id: vendeurId,
+                    p_actif: true
+                });
+
+                if (error) throw error;
+
                 alert('✅ Vendeur activé avec succès !');
                 await chargerVendeurs();
             } catch (error) {
-                alert('❌ Erreur lors de l\'activation');
+                alert('❌ Erreur : ' + error.message);
                 console.error(error);
                 btnElement.disabled = false;
                 btnElement.textContent = '✓ Activer';
