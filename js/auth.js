@@ -1,6 +1,8 @@
 import { supabase } from "./config.js";
 
-// ================= INSCRIPTION =================
+/* ===============================
+   INSCRIPTION
+================================ */
 async function inscrireVendeur(data) {
   try {
     const { nom, slug, telephone } = data;
@@ -16,6 +18,14 @@ async function inscrireVendeur(data) {
 
     if (error) throw error;
 
+    // 🔐 ON SAUVEGARDE LE CODE
+    alert(
+      "✅ Boutique créée !\n\n" +
+      "IMPORTANT 🔐\n" +
+      "Votre code de connexion est : " + result.code + "\n\n" +
+      "Gardez-le précieusement."
+    );
+
     sauvegarderSession(result);
     return { success: true, data: result };
 
@@ -24,20 +34,21 @@ async function inscrireVendeur(data) {
   }
 }
 
-// ================= CONNEXION =================
-async function connexionVendeur(telephone) {
+/* ===============================
+   CONNEXION
+================================ */
+async function connexionVendeur(telephone, code) {
   try {
     const { data: result, error } = await supabase.rpc(
       "connexion_vendeur",
-      { p_telephone: telephone }
+      {
+        p_telephone: telephone,
+        p_code: code
+      }
     );
 
     if (error) throw error;
 
-    if (!result.actif) {
-      throw new Error("Compte suspendu");
-    }
-
     sauvegarderSession(result);
     return { success: true, data: result };
 
@@ -46,12 +57,17 @@ async function connexionVendeur(telephone) {
   }
 }
 
-// ================= SESSION =================
+/* ===============================
+   SESSION PERSISTANTE
+================================ */
 function sauvegarderSession(vendeur) {
-  localStorage.setItem("majay_vendeur", JSON.stringify({
-    ...vendeur,
-    timestamp: Date.now()
-  }));
+  localStorage.setItem(
+    "majay_vendeur",
+    JSON.stringify({
+      ...vendeur,
+      loggedAt: Date.now()
+    })
+  );
 }
 
 function getSession() {

@@ -1,63 +1,68 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - MAJAY</title>
-    <link rel="stylesheet" href="../css/dashboard.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion Vendeur - MAJAY</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
 </head>
+
 <body class="auth-page">
-    <div class="auth-container">
-        <div class="auth-header">
-            <h1 class="logo">🛍️ MAJAY</h1>
-            <p class="tagline">Connectez-vous</p>
-        </div>
+<div class="auth-container">
 
-        <div class="auth-card">
-            <h2>Connexion Vendeur</h2>
-            <p class="auth-subtitle">Gérez votre boutique</p>
+  <div class="auth-header">
+    <h1 class="logo">🛍️ MAJAY</h1>
+    <p class="tagline">Connexion vendeur</p>
+  </div>
 
-            <form id="connexionForm" class="auth-form">
-                <div class="form-group">
-                    <label>Numéro de téléphone</label>
-                    <input type="tel" id="telephone" required placeholder="+237 6XX XXX XXX">
-                </div>
+  <div class="auth-card">
+    <h2>Accéder à ma boutique</h2>
 
-                <button type="submit" class="btn-primary" id="btnSubmit">
-                    <span class="btn-text">Se connecter</span>
-                    <span class="btn-loader" style="display:none">⏳</span>
-                </button>
-            </form>
+    <form id="connexionForm" class="auth-form">
 
-            <div class="auth-footer">
-                <p>Pas de boutique ? <a href="inscription.html">Créer maintenant</a></p>
-            </div>
-        </div>
+      <div class="form-group">
+        <label>Numéro de téléphone</label>
+        <input type="tel" id="telephone" required placeholder="+2376XXXXXXXX">
+      </div>
+
+      <div class="form-group">
+        <label>Code secret</label>
+        <input type="password" id="code" required placeholder="••••">
+        <small style="color:#718096">Code reçu à l’inscription</small>
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Se connecter
+      </button>
+
+    </form>
+
+    <div class="auth-footer">
+      <p>Pas encore vendeur ? <a href="inscription.html">Créer une boutique</a></p>
     </div>
+  </div>
 
-    <script type="module">
+</div>
+
+<script type="module">
 import { authMajay } from "../js/auth.js";
 
-document
-  .getElementById("connexionForm")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("connexionForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const telephone = document.getElementById("telephone").value.trim();
+  const telephone = document.getElementById("telephone").value.trim();
+  const code = document.getElementById("code").value.trim();
 
-    const result = await authMajay.connexionVendeur(telephone);
+  const result = await authMajay.connexionVendeur(telephone, code);
 
-    if (!result.success) {
-      alert("❌ " + result.error);
-      return;
-    }
+  if (!result.success) {
+    alert("❌ " + result.error);
+    return;
+  }
 
-    window.location.href = "dashboard.html";
-  });
+  window.location.href = "dashboard.html";
+});
 </script>
-
 
 </body>
 </html>
-
-
