@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Connexion Admin - MAJAY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body class="auth-page">
@@ -10,36 +11,54 @@
 <div class="auth-container">
   <div class="auth-card">
     <h2>Connexion SuperAdmin</h2>
-    <p>Un code vous sera envoyé par email</p>
+    <p>Un code de sécurité sera envoyé par email</p>
 
     <form id="adminForm">
-      <input
-        type="email"
-        id="email"
-        placeholder="email admin"
-        required
-      />
+      <div class="form-group">
+        <label>Email administrateur</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="admin@majay.com"
+          required
+          autofocus
+        />
+      </div>
 
-      <button type="submit">Recevoir le code</button>
+      <button type="submit" class="btn-primary">
+        🔐 Recevoir le code
+      </button>
     </form>
+
+    <p style="margin-top:20px;font-size:0.9em;color:#718096;">
+      Accès réservé aux administrateurs MAJAY
+    </p>
   </div>
 </div>
 
 <script type="module">
   import { adminAuth } from "../js/admin-auth.js";
 
-  document.getElementById("adminForm").addEventListener("submit", async (e) => {
+  const form = document.getElementById("adminForm");
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const email = document.getElementById("email").value.trim();
+    if (!email) return;
 
-    const res = await adminAuth.demanderOTP(email);
+    // 🔐 Sauvegarde temporaire (utilisée par otp.html)
+    localStorage.setItem("admin_otp_email", email);
 
-    if (!res.success) {
-      alert("❌ " + res.error);
+    const result = await adminAuth.demanderOTP(email);
+
+    if (!result.success) {
+      alert("❌ " + result.error);
       return;
     }
 
-    alert("📩 Code envoyé par email. Vérifie ta boîte.");
+    // ✅ REDIRECTION AUTOMATIQUE
+    window.location.href = "otp.html";
   });
 </script>
 

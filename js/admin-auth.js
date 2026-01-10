@@ -24,7 +24,8 @@ async function demanderOTP(email) {
     email,
     options: {
       shouldCreateUser: true,  // ⬅️ CHANGÉ : doit être true
-      emailRedirectTo: "https://projet-majay.vercel.app/admin/dashboard.html"
+      emailRedirectTo: "https://projet-majay.vercel.app/admin/otp.html"
+
     }
   });
 

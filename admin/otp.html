@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Validation Code Admin - MAJAY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>🔐 Validation de sécurité</h2>
+    <p>Entrez le code reçu par email</p>
+
+    <form id="otpForm">
+      <div class="form-group">
+        <label>Code à 6 chiffres</label>
+        <input
+          type="text"
+          id="otp"
+          placeholder="123456"
+          maxlength="6"
+          required
+          autofocus
+        />
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Valider
+      </button>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from "../js/config.js";
+
+  const email = localStorage.getItem("admin_otp_email");
+
+  if (!email) {
+    window.location.href = "connexion.html";
+  }
+
+  document.getElementById("otpForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const token = document.getElementById("otp").value.trim();
+
+    if (token.length !== 6) {
+      alert("❌ Code invalide");
+      return;
+    }
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "email"
+    });
+
+    if (error) {
+      alert("❌ " + error.message);
+      return;
+    }
+
+    // Nettoyage
+    localStorage.removeItem("admin_otp_email");
+
+    // ✅ REDIRECTION FINALE
+    window.location.href = "dashboard.html";
+  });
+</script>
+
+</body>
+</html>
