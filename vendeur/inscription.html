@@ -64,37 +64,42 @@
 import { authMajay } from "../js/auth.js";
 
 document.getElementById('inscriptionForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const btn = document.getElementById('btnSubmit');
-    btn.disabled = true;
-    btn.querySelector('.btn-text').style.display = 'none';
-    btn.querySelector('.btn-loader').style.display = 'inline';
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.querySelector('.btn-text').style.display = 'none';
+  btn.querySelector('.btn-loader').style.display = 'inline';
 
-    try {
-        const result = await authMajay.inscrireVendeur({
-            nom: document.getElementById('nom').value.trim(),
-            slug: document.getElementById('slug').value.trim(),
-            telephone: document.getElementById('telephone').value.trim(),
-            whatsapp: document.getElementById('whatsapp').value.trim()
-        });
+  try {
+    const result = await authMajay.inscrireVendeur({
+      nom: document.getElementById('nom').value.trim(),
+      slug: document.getElementById('slug').value.trim(),
+      telephone: document.getElementById('telephone').value.trim(),
+      whatsapp: document.getElementById('whatsapp').value.trim()
+    });
 
-        if (result.success) {
-          
-          alert('✅ Boutique créée avec succès ! Ajoutez vos premiers produits.');
-            window.location.href = 'dashboard.html';
-        } else {
-            throw new Error(result.error);
-        }
-
-    } catch (error) {
-        alert('❌ ' + error.message);
-        btn.disabled = false;
-        btn.querySelector('.btn-text').style.display = 'inline';
-        btn.querySelector('.btn-loader').style.display = 'none';
+    if (!result.success) {
+      throw new Error(result.error);
     }
+
+    // 👉 on sauvegarde temporairement le code pour affichage
+    sessionStorage.setItem(
+      "majay_code_secret",
+      JSON.stringify(result.data)
+    );
+
+    window.location.href = "code-secret.html";
+
+  } catch (error) {
+    alert("❌ " + error.message);
+    btn.disabled = false;
+    btn.querySelector('.btn-text').style.display = 'inline';
+    btn.querySelector('.btn-loader').style.display = 'none';
+  }
 });
 </script>
+
 
 </body>
 </html>

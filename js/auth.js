@@ -1,8 +1,8 @@
 import { supabase } from "./config.js";
 
-/* ===============================
+/* ======================
    INSCRIPTION
-================================ */
+====================== */
 async function inscrireVendeur(data) {
   try {
     const { nom, slug, telephone } = data;
@@ -18,14 +18,6 @@ async function inscrireVendeur(data) {
 
     if (error) throw error;
 
-    // 🔐 ON SAUVEGARDE LE CODE
-    alert(
-      "✅ Boutique créée !\n\n" +
-      "IMPORTANT 🔐\n" +
-      "Votre code de connexion est : " + result.code + "\n\n" +
-      "Gardez-le précieusement."
-    );
-
     sauvegarderSession(result);
     return { success: true, data: result };
 
@@ -34,9 +26,9 @@ async function inscrireVendeur(data) {
   }
 }
 
-/* ===============================
+/* ======================
    CONNEXION
-================================ */
+====================== */
 async function connexionVendeur(telephone, code) {
   try {
     const { data: result, error } = await supabase.rpc(
@@ -57,15 +49,15 @@ async function connexionVendeur(telephone, code) {
   }
 }
 
-/* ===============================
-   SESSION PERSISTANTE
-================================ */
+/* ======================
+   SESSION
+====================== */
 function sauvegarderSession(vendeur) {
   localStorage.setItem(
     "majay_vendeur",
     JSON.stringify({
       ...vendeur,
-      loggedAt: Date.now()
+      timestamp: Date.now()
     })
   );
 }
